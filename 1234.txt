@@ -1,0 +1,99 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_OPTIONS 5
+
+typedef struct {
+    char question[100];
+    char options[MAX_OPTIONS][50];
+    int responses[MAX_OPTIONS];
+    int totalResponses;
+} Survey;
+
+void initializeSurvey(Survey *survey) {
+    printf("Введите вопрос опроса: ");
+    fgets(survey->question, sizeof(survey->question), stdin);
+    survey->question[strcspn(survey->question, "\n")] = 0;
+    
+    printf("Введите варианты ответа (максимум %d), для завершения введите пустую строку:\n", MAX_OPTIONS);
+    int i = 0;
+    while (i < MAX_OPTIONS) {
+        printf("Вариант %d: ", i+1);
+        fgets(survey->options[i], sizeof(survey->options[i]), stdin);
+        survey->options[i][strcspn(survey->options[i], "\n")] = 0;
+        
+        if (survey->options[i][0] == '\0') {
+            break;
+        }
+        
+        i++;
+    }
+    
+    survey->totalResponses = 0;
+    for (int j = 0; j < i; j++) {
+        survey->responses[j] = 0;
+    }
+}
+
+void takeSurvey(Survey *survey) {
+    printf("%s\n", survey->question);
+    for (int i = 0; survey->options[i][0] != '\0'; i++) {
+        printf("%d. %s\n", i+1, survey->options[i]);
+    }
+    
+    int choice;
+    printf("Выберите вариант ответа (1-%d): ", MAX_OPTIONS);
+    scanf("%d", &choice);
+    
+    if (choice < 1 || choice > MAX_OPTIONS) {
+        printf("Некорректный выбор.\n");
+        return;
+    }
+    
+    survey->responses[choice-1]++;
+    survey->totalResponses++;
+    printf("Ответ учтен!\n");
+}
+
+void printResults(const Survey *survey) {
+    printf("Результаты опроса:\n");
+    printf("%s\n", survey->question);
+    for (int i = 0; survey->options[i][0] != '\0'; i++) {
+        int percentage = (survey->responses[i] * 100) / survey->totalResponses;
+        printf("%d. %s - %d (%d%c)\n", i+1, survey->options[i], survey->responses[i], percentage, '%');
+    }
+    printf("Всего ответов: %d\n", survey->totalResponses);
+}
+
+int main() {
+    Survey survey;
+    initializeSurvey(&survey);
+    
+    while (1) {
+        int option;
+        printf("\nВыберите опцию:\n");
+        printf("1. Пройти опрос\n");
+        printf("2. Узнать результаты\n");
+        printf("3. Выйти\n");
+        printf("Ваш выбор: ");
+        scanf("%d", &option);
+        
+        switch(option) {
+            case 1:
+                takeSurvey(&survey);
+                break;
+            case 2:
+                printResults(&survey);
+                break;
+            case 3:
+                exit(0);
+                break;
+            default:
+                printf("Некорректная опция, попробуйте снова.\n");
+                break;
+        }
+    }
+    
+    return 0;
+}
